@@ -1,0 +1,28 @@
+services:
+  agent:
+    build:
+      context: ./agent
+    ports:
+      - "5050:5050"
+    environment:
+      - FLASK_ENV=development
+    volumes:
+      - ./agent:/app
+    networks:
+      - agent-network
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_AGENT_URL=http://localhost:5050
+    volumes:
+      - ./client:/app
+      - /app/node_modules # Ensure node_modules are not overwritten
+    networks:
+      - agent-network
+networks:
+  agent-network:
+    driver: bridge
