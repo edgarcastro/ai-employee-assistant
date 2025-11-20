@@ -1,4 +1,4 @@
-# myagents
+# ai-employee-assistant
 
 A web-based AI agent application that queries employee data from a MySQL database using OpenAI Agents SDK, Flask, Flask-SocketIO, and React.
 
@@ -32,8 +32,8 @@ This project creates an intelligent agent that can query and retrieve employee i
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/yourusername/myagents.git
-   cd myagents
+   git clone https://github.com/edgarcastro/ai-employee-assistant.git
+   cd ai-employee-assistant
    ```
 
 2. **Create a `.env` file** in the `agent/` directory:
