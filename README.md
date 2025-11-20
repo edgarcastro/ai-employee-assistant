@@ -1,22 +1,31 @@
 # myagents
 
-A simple web agent app with Flask, Flask-SocketIO, and OpenAI agents.
+A web-based AI agent application that queries employee data from a MySQL database using OpenAI Agents SDK, Flask, Flask-SocketIO, and React.
+
+![Demo](demo.gif)
 
 ## Description
 
-This project creates an agent for a browser-based design app called GFX. The agent can add text and images to a canvas based on user prompts. It uses Flask as the backend and real-time communication via Socket.IO.
+This project creates an intelligent agent that can query and retrieve employee information from a MySQL database. The agent uses OpenAI's Agents SDK to understand natural language queries and execute appropriate database operations. It features a modern React frontend with real-time communication via Socket.IO.
 
 ## Features
 
-- Accepts user input via web sockets
-- Agent generates commands and explanations for a design app
-- Supports adding text and images to the canvas
-- Real-time communication using Flask-SocketIO
+- **AI-Powered Database Queries**: Natural language interface to query employee data
+- **Real-time Communication**: WebSocket-based communication between frontend and backend
+- **MySQL Database**: Persistent storage with pre-populated employee data (100+ records)
+- **Multiple Query Tools**:
+  - Filter employees by gender
+  - Find employees with highest salary
+  - Find employees with lowest salary
+- **Docker Support**: Easy deployment with Docker Compose
+- **Modern Stack**: React + TypeScript frontend, Flask + SQLAlchemy backend
 
 ## Requirements
 
-- Python 3.13+
-- [See `pyproject.toml` for dependencies]
+- Docker
+- OpenAI API Key
+- Node.js 22+ (for local development)
+- Python 3.13+ (for local development)
 
 ## Installation
 
@@ -27,65 +36,132 @@ This project creates an agent for a browser-based design app called GFX. The age
    cd myagents
    ```
 
-2. **Install dependencies**:
+2. **Create a `.env` file** in the `agent/` directory:
 
    ```bash
-   pip install .    # or: pip install -r requirements.txt
+   cd agent
+   cp .env.example .env
    ```
 
-3. **Create a `.env` file** and add your OpenAI API key:
+   Then add your OpenAI API key:
+
    ```
    OPENAI_API_KEY=your_openai_api_key
+   DATABASE_URL=mysql+pymysql://myagents_user:myagents_password@mysql:3306/myagents_db
    ```
+
+3. **Start the application with Docker Compose**:
+
+   ```bash
+   docker compose up --build
+   ```
+
+   This will start:
+
+   - MySQL database on port 3306
+   - Flask backend (agent) on port 5050
+   - React frontend (client) on port 3000
 
 ## Usage
 
-Run the app locally:
+### Using Docker Compose (Recommended)
 
 ```bash
+docker compose up
+```
+
+Access the application at `http://localhost:3000`
+
+### Local Development
+
+**Backend (Agent)**:
+
+```bash
+cd agent
+pip install -e .
 python main.py
 ```
 
-This starts the Flask server with SocketIO enabled. You can connect from a browser client and send messages.
+**Frontend (Client)**:
+
+```bash
+cd client
+yarn install
+yarn dev
+```
+
+**Database**:
+The MySQL database will be automatically initialized with the `employees` table and 100 test records when using Docker Compose.
 
 ## Project Structure
 
 ```
 .
-├── main.py
-├── agents.py
-├── .env
-├── .python-version
+├── agent/                 # Flask backend with OpenAI Agents
+│   ├── main.py           # Main application file
+│   ├── Dockerfile        # Backend container configuration
+│   ├── pyproject.toml    # Python dependencies
+│   └── .env              # Environment variables (create from .env.example)
+├── client/               # React frontend
+│   ├── src/
+│   │   ├── App.tsx       # Main React component
+│   │   └── components/   # React components
+│   ├── Dockerfile        # Frontend container configuration
+│   └── package.json      # Node.js dependencies
+├── database/
+│   └── init.sql          # Database initialization script
+├── docker-compose.yml    # Docker orchestration
 └── README.md
 ```
 
 ## How it works
 
-- **Backend**: Handles incoming socket messages. When a message is received, it is processed by an agent which determines if it should add text or an image.
-- **Agent**: Receives textual instructions and uses tools (`add_text` and `add_image`) to generate appropriate commands for the GFX design app.
-- **Socket Events**:
-  - Send `agent_message` event to trigger agent processing.
-  - Server emits `message` events in response.
+- **Frontend (React)**: Provides a chat interface where users can ask questions about employees
+- **Backend (Flask + SocketIO)**: Receives messages via WebSocket and processes them through the OpenAI Agent
+- **Agent (OpenAI Agents SDK)**: Interprets natural language queries and selects appropriate tools to query the database
+- **Database (MySQL)**: Stores employee data with fields: id, name, age, gender, entry_date, salary
+- **Tools Available**:
+  - `get_employee_by_gender`: Filters employees by gender (Male, Female, Other)
+  - `get_employee_highest_salary`: Returns employees with the highest salary
+  - `get_employee_lowest_salary`: Returns employees with the lowest salary
 
 ## Example Usage
 
-1. **Send a message to add text**:
+1. **Query employees by gender**:
 
-   ```json
-   {
-     "event": "agent_message",
-     "data": "Add 'Hello World' to the canvas"
-   }
+   ```
+   "Show me all male employees"
+   "Find all female employees"
    ```
 
-2. **Send a message to add an image**:
-   ```json
-   {
-     "event": "agent_message",
-     "data": "Insert the company logo image"
-   }
+2. **Find salary information**:
+
+   ```
+   "Who has the highest salary?"
+   "Show me the employee with the lowest salary"
    ```
 
-## License
+3. **Natural language queries**:
+   ```
+   "How many employees are there?"
+   "What's the average salary?"
+   ```
 
-MIT
+## Database Schema
+
+The `employees` table contains:
+
+- `id`: Primary key (auto-increment)
+- `name`: Employee name (VARCHAR)
+- `age`: Employee age (INT)
+- `gender`: Gender (VARCHAR: Male, Female, Other)
+- `entry_date`: Date of entry (DATE)
+- `salary`: Salary amount (DECIMAL)
+
+The database is pre-populated with 100 test records.
+
+## Socket Events
+
+- **Client → Server**: `user_message` - Sends user query to the agent
+- **Server → Client**: `agent_message` - Returns agent response
+- **Server → Client**: `agent_error` - Returns error messages
