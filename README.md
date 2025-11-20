@@ -26,6 +26,7 @@ This project creates an intelligent agent that can query and retrieve employee i
 - OpenAI API Key
 - Node.js 22+ (for local development)
 - Python 3.13+ (for local development)
+- [uv](https://github.com/astral-sh/uv) (Python package manager)
 
 ## Installation
 
@@ -76,10 +77,22 @@ Access the application at `http://localhost:3000`
 
 **Backend (Agent)**:
 
+First, install `uv` if you haven't already:
+
+```bash
+# Install uv (macOS/Linux)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Or using pip
+pip install uv
+```
+
+Then set up and run the backend:
+
 ```bash
 cd agent
-pip install -e .
-python main.py
+uv sync
+uv run main.py
 ```
 
 **Frontend (Client)**:
@@ -101,6 +114,7 @@ The MySQL database will be automatically initialized with the `employees` table 
 │   ├── main.py           # Main application file
 │   ├── Dockerfile        # Backend container configuration
 │   ├── pyproject.toml    # Python dependencies
+│   ├── uv.lock           # Locked dependencies (uv)
 │   └── .env              # Environment variables (create from .env.example)
 ├── client/               # React frontend
 │   ├── src/
