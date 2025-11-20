@@ -6,10 +6,13 @@ services:
       - "5050:5050"
     environment:
       - FLASK_ENV=development
+      - DATABASE_URL=mysql+pymysql://myagents_user:myagents_password@mysql:3306/myagents_db
     volumes:
       - ./agent:/app
     networks:
       - agent-network
+    depends_on:
+      - mysql
   client:
     build:
       context: ./client
@@ -20,9 +23,42 @@ services:
       - VITE_AGENT_URL=http://localhost:5050
     volumes:
       - ./client:/app
-      - /app/node_modules # Ensure node_modules are not overwritten
+      - /app/node_modules
     networks:
       - agent-network
+    depends_on:
+      - agent
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=myagents_db
+      - MYSQL_USER=myagents_user
+      - MYSQL_PASSWORD=myagents_password
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d
+      - mysql_data:/var/lib/mysql
+    networks:
+      - agent-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-prootpassword",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 networks:
   agent-network:
     driver: bridge
+volumes:
+  mysql_data:

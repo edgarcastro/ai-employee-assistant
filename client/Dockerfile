@@ -1,10 +1,12 @@
-FROM node:22-alpine
+FROM node:lts-alpine
+
+RUN yarn set version 4.11.0
+
 WORKDIR /app
-COPY package.json .
-COPY yarn.lock .
-RUN yarn 
 
+COPY package.json yarn.lock .yarnrc.yml ./
 
-COPY . .
+RUN yarn install --immutable
+
 EXPOSE 3000
 CMD ["yarn", "dev"]

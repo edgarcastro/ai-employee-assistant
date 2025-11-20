@@ -23,7 +23,11 @@ const App = () => {
   }, []);
 
   const handleSubmit = (message: string) => {
-    setMessages((prev) => [...prev, { type: "user", content: message }]);
+    setMessages((prev) =>
+      prev.length > 0 && prev[prev.length - 1].type === "user"
+        ? prev
+        : [...prev, { type: "user", content: message }]
+    );
 
     if (!socketRef.current || !socketRef.current.connected) {
       const newSocket = io(agentUrl, {
@@ -35,11 +39,14 @@ const App = () => {
 
       newSocket.on("connect", () => {
         newSocket.emit("user_message", message);
-        setMessages((prev) => [...prev, { type: "user", content: message }]);
       });
 
       newSocket.on("agent_message", (data) => {
-        setMessages((prev) => [...prev, { type: "agent", content: data }]);
+        setMessages((prev) =>
+          prev.length > 0 && prev[prev.length - 1].type === "agent"
+            ? prev
+            : [...prev, { type: "agent", content: data }]
+        );
       });
 
       newSocket.on("connect_error", (error) => {
@@ -52,14 +59,23 @@ const App = () => {
           return [...prev, { type: "error", content: formattedError }];
         });
       });
+
+      newSocket.on("agent_error", (error) => {
+        setMessages((prev) => {
+          if (prev.length > 0 && prev[prev.length - 1].type === "error") {
+            return prev;
+          }
+
+          return [...prev, { type: "error", content: error }];
+        });
+      });
     } else if (socketRef.current.connected) {
       socketRef.current.emit("user_message", message);
-      setMessages((prev) => [...prev, { type: "user", content: message }]);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-dvh w-full max-w-4xl mx-auto gap-4">
+    <div className="flex flex-col items-center justify-center h-dvh w-full max-w-4xl mx-auto gap-4 p-4 overflow-y-auto">
       {!messages.length && (
         <div className="flex flex-col items-center justify-center w-full">
           <h1 className="text-2xl font-bold text-white">
@@ -70,7 +86,9 @@ const App = () => {
           </p>
         </div>
       )}
-      {messages.length > 0 && <Conversation messages={messages} />}
+      {messages.length > 0 && (
+        <Conversation messages={messages} loading={isServerPending} />
+      )}
 
       <AgentInput onSubmit={handleSubmit} loading={isServerPending} />
     </div>
