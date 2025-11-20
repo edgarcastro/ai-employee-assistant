@@ -2,7 +2,7 @@
 
 A web-based AI agent application that queries employee data from a MySQL database using OpenAI Agents SDK, Flask, Flask-SocketIO, and React.
 
-![Demo](demo.gif)
+![Demo](demo.mov)
 
 ## Description
 
